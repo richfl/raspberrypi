@@ -23,6 +23,14 @@ try:
             robot.MoveRight()
         elif x == 'ml':
             robot.MoveLeft()
+        elif x == 'fr':
+            robot.MoveForwardRight()
+        elif x == 'fl':
+            robot.MoveForwardLeft()
+        elif x == 'br':
+            robot.MoveBackwardRight()
+        elif x == 'bl':
+            robot.MoveBackwardLeft()
         elif x >= '4' and x <= '9':
             robot.Speed(int(x) * 10)
         elif x > '0' and x <= '3':

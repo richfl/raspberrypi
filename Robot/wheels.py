@@ -77,6 +77,42 @@ class wheels:
             self.wheels['br'].reverse()
             self.wheels['bl'].forward()
 
+    def MoveForwardRight(self):
+        if (self.Direction != 'fr'):
+            self.stop()
+            self.Direction = 'fr'
+            self.wheels['fl'].forward()
+            self.wheels['fr'].stop()
+            self.wheels['br'].forward()
+            self.wheels['bl'].stop()
+
+    def MoveForwardLeft(self):
+        if (self.Direction != 'fl'):
+            self.stop()
+            self.Direction = 'fl'
+            self.wheels['fr'].forward()
+            self.wheels['fl'].stop()
+            self.wheels['bl'].forward()
+            self.wheels['br'].stop()
+
+    def MoveBackwardLeft(self):
+        if (self.Direction != 'bl'):
+            self.stop()
+            self.Direction = 'bl'
+            self.wheels['fl'].reverse()
+            self.wheels['fr'].stop()
+            self.wheels['br'].reverse()
+            self.wheels['bl'].stop()
+
+    def MoveBackwardRight(self):
+        if (self.Direction != 'br'):
+            self.stop()
+            self.Direction = 'br'
+            self.wheels['fr'].reverse()
+            self.wheels['fl'].stop()
+            self.wheels['bl'].reverse()
+            self.wheels['br'].stop()
+
     def Speed(self, newspeed):
         if (self.robotspeed != newspeed):
             self.robotspeed = newspeed
