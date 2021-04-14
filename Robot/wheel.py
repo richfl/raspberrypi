@@ -1,11 +1,9 @@
 import sys
 import RPi.GPIO as GPIO
 
-class wheel
+class wheel:
     def __init__(self, forwardpin, backwardpin, speed, frequency):
-        self.forwardpin = forwardpin
-        self.backward.pin = backwardpin
-        self.speed = speed
+        self.wheelspeed = speed
         self.state = 's'
 
         GPIO.setup(forwardpin, GPIO.OUT)
@@ -16,28 +14,28 @@ class wheel
 
     def forward(self):
         if (self.state == 'b'):
-            backwardpwm.stop()
-        forwardpwm.start(speed)
+            self.backwardpwm.stop()
+        self.forwardpwm.start(self.wheelspeed)
         self.state = 'f'
 
     def reverse(self):
         if (self.state == 'f'):
-            forwardpwm.stop()
-        backwardpwm.start(speed)
+            self.forwardpwm.stop()
+        self.backwardpwm.start(self.wheelspeed)
         self.state = 'b'
 
     def stop(self):
-        forwardpwm.stop()
-        backwardpwm.stop()
+        self.forwardpwm.stop()
+        self.backwardpwm.stop()
         self.state = 's'
 
-    def setspeed(self, speed)
-        if (speed != self.speed):
-            self.speed = Speed
+    def setspeed(self, speed):
+        if (speed != self.wheelspeed):
+            self.wheelspeed = speed
             if (self.state == 'f'):
-                forward()
+                self.forward()
             elif (self.state == 'b'):
-                reverse()
+                self.reverse()
 
     def state(self):
         return self.state

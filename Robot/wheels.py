@@ -1,120 +1,87 @@
 import sys
 import RPi.GPIO as GPIO
-import wheel
+from wheel import wheel
 
-mode = GPIO.getmode()
-GPIO.cleanup()
+class wheels:
+    def __init__(self, speed = 80, frequency = 1000):
+        self.Direction = 's'
+        self.robotspeed = speed
+        self.Frequency = frequency
 
-Direction = 's'
-Speed = 80
-Frequency = 1000
+        GPIO.setmode(GPIO.BOARD)
 
-GPIO.setmode(GPIO.BOARD)
+        self.wheels = {}
+        self.wheels['fl'] = wheel(16, 15, self.robotspeed, self.Frequency)
+        self.wheels['fr'] = wheel(22, 18, self.robotspeed, self.Frequency)
+        self.wheels['bl'] = wheel(13, 10, self.robotspeed, self.Frequency)
+        self.wheels['br'] = wheel(8, 33, self.robotspeed, self.Frequency)
+        self.stop()
 
-wheels = {}
+    def stop(self):
+        self.wheels['fl'].stop()
+        self.wheels['fr'].stop()
+        self.wheels['bl'].stop()
+        self.wheels['br'].stop()
 
-wheels['fl'] = wheel(16, 15, Speed, Frequency)
-wheels['fr'] = wheel(22, 18, Speed, Frequency)
-wheels['bl'] = wheel(13, 10, Speed, Frequency)
-wheels['br'] = wheel(8, 33, Speed, Frequency)
+    def Forward(self):
+        if (self.Direction != 'f'):
+            self.stop()
+            self.Direction = 'f'
+            self.wheels['fl'].forward()
+            self.wheels['fr'].forward()
+            self.wheels['br'].forward()
+            self.wheels['bl'].forward()
 
-def stop():
-    wheels['fl'].stop()
-    wheels['fr'].stop()
-    wheels['bl'].stop()
-    wheels['br'].stop()
+    def Backward(self):
+        if (self.Direction != 'b'):
+            self.stop()
+            self.Direction = 'b'
+            self.wheels['fl'].reverse()
+            self.wheels['fr'].reverse()
+            self.wheels['br'].reverse()
+            self.wheels['bl'].reverse()
+                                                                
+    def SpinRight(self):
+        if (self.Direction != 'r'):
+            self.stop()
+            self.Direction = 'r'
+            self.wheels['fl'].forward()
+            self.wheels['fr'].reverse()
+            self.wheels['br'].reverse()
+            self.wheels['bl'].forward()
 
-def AllForward():
-    global Direction
-    if (Direction != 'f'):
-        stop()
-        Direction = 'f'
-        wheels['fl'].forward()
-        wheels['fr'].forward()
-        wheels['br'].forward()
-        wheels['bl'].forward()
+    def SpinLeft(self):
+        if (self.Direction != 'l'):
+            self.stop()
+            self.Direction = 'l'
+            self.wheels['fl'].reverse()
+            self.wheels['fr'].forward()
+            self.wheels['br'].forward()
+            self.wheels['bl'].reverse()
 
-def AllBackward():
-    global Direction
-    if (Direction != 'b'):
-        stop()
-        Direction = 'b'
-        wheels['fl'].reverse()
-        wheels['fr'].reverse()
-        wheels['br'].reverse()
-        wheels['bl'].reverse()
+    def MoveRight(self):
+        if (self.Direction != 'mr'):
+            self.stop()
+            self.Direction = 'mr'
+            self.wheels['fl'].forward()
+            self.wheels['fr'].reverse()
+            self.wheels['br'].forward()
+            self.wheels['bl'].reverse()
 
-def SpinRight():
-    global Direction
-    if (Direction != 'r'):
-        stop()
-        Direction = 'r'
-        wheels['fl'].forward()
-        wheels['fr'].reverse()
-        wheels['br'].reverse()
-        wheels['bl'].forward()
+    def MoveLeft(self):
+        if (self.Direction != 'ml'):
+            self.stop()
+            self.Direction = 'ml'
+            self.wheels['fl'].reverse()
+            self.wheels['fr'].forward()
+            self.wheels['br'].reverse()
+            self.wheels['bl'].forward()
 
-def SpinLeft():
-    global Direction
-    if (Direction != 'l'):
-        stop()
-        Direction = 'l'
-        wheels['fl'].reverse()
-        wheels['fr'].forward()
-        wheels['br'].forward()
-        wheels['bl'].reverse()
+    def Speed(self, newspeed):
+        if (self.robotspeed != newspeed):
+            self.robotspeed = newspeed
+            self.wheels['fl'].setspeed(newspeed)
+            self.wheels['fr'].setspeed(newspeed)
+            self.wheels['bl'].setspeed(newspeed)
+            self.wheels['br'].setspeed(newspeed)
 
-def MoveRight():
-    global Direction
-    if (Direction != 'mr'):
-        stop()
-        Direction = 'mr'
-        wheels['fl'].forward()
-        wheels['fr'].reverse()
-        wheels['br'].forward()
-        wheels['bl'].reverse()
-
-def MoveLeft():
-    global Direction
-    if (Direction != 'ml'):
-        stop()
-        Direction = 'ml'
-        wheels['fl'].reverse()
-        wheels['fr'].forward()
-        wheels['br'].reverse()
-        wheels['bl'].forward()
-
-def Speed(newspeed):
-    global Speed
-    if (Speed != newspeed)
-        wheels['fl'].setspeed(newspeed)
-        wheels['fr'].setspeed(newspeed)
-        wheels['bl'].setspeed(newspeed)
-        wheels['br'].setspeed(newspeed)
-
-stop()
-x = Direction
-
-while (x != 'e'):
-    x=input()
-
-    if x =='f':
-        AllForward()
-    elif x == 'b':
-        AllBackward()
-    elif x == 's' or x == '0':
-        stop()
-    elif x == 'l':
-        SpinLeft()
-    elif x == 'r':
-        SpinRight()
-    elif x == 'mr':
-        MoveRight()
-    elif x == 'ml':
-        MoveLeft()
-    elif x >= '4' and x <= '9':
-        Speed(int(x) * 10)
-    elif x > '0' and x <= '3':
-        Speed(100)
-
-GPIO.cleanup()
