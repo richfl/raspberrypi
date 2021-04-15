@@ -3,10 +3,10 @@ import RPi.GPIO as GPIO
 from wheels import Wheels
 
 robot = wheels()
-
 x = 's'
+
 try:
-    while (x != 'e'):
+    while x != 'e':
         x=input()
 
         if x =='f':

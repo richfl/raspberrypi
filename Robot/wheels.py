@@ -44,7 +44,7 @@ class Wheels:
         self.wheels[Axle.BackRight].Stop()
 
     def Forward(self):
-        if (self.direction != Direction.Forward):
+        if self.direction != Direction.Forward:
             self.Stop()
             self.direction = Direction.Forward
             self.wheels[Axle.FrontLeft].Forward()
@@ -53,7 +53,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Forward()
 
     def Backward(self):
-        if (self.direction != Direction.Reverse):
+        if self.direction != Direction.Reverse:
             self.Stop()
             self.direction = Direction.Reverse
             self.wheels[Axle.FrontLeft].Reverse()
@@ -71,7 +71,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Forward()
 
     def SpinLeft(self):
-        if (self.direction != Direction.SpinLeft):
+        if self.direction != Direction.SpinLeft:
             self.Stop()
             self.direction = Direction.SpinLeft
             self.wheels[Axle.FrontLeft].Reverse()
@@ -80,7 +80,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Reverse()
 
     def MoveRight(self):
-        if (self.direction != Direction.MoveRight):
+        if self.direction != Direction.MoveRight:
             self.Stop()
             self.direction = Direction.MoveRight
             self.wheels[Axle.FrontLeft].Forward()
@@ -89,7 +89,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Reverse()
 
     def MoveLeft(self):
-        if (self.direction != Direction.MoveLeft):
+        if self.direction != Direction.MoveLeft:
             self.Stop()
             self.direction = Direction.MoveLeft
             self.wheels[Axle.FrontLeft].Reverse()
@@ -98,7 +98,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Forward()
 
     def MoveForwardRight(self):
-        if (self.direction != Direction.ForwardRight):
+        if self.direction != Direction.ForwardRight:
             self.Stop()
             self.direction = Direction.ForwardRight
             self.wheels[Axle.FrontLeft].Forward()
@@ -107,7 +107,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Stop()
 
     def MoveForwardLeft(self):
-        if (self.direction != Direction.ForwardLeft):
+        if self.direction != Direction.ForwardLeft:
             self.Stop()
             self.direction = Direction.ForwardLeft
             self.wheels[Axle.FrontRight].Forward()
@@ -116,7 +116,7 @@ class Wheels:
             self.wheels[Axle.BackRight].Stop()
 
     def MoveBackwardLeft(self):
-        if (self.direction != Direction.ReverseLeft):
+        if self.direction != Direction.ReverseLeft:
             self.Stop()
             self.direction = Direction.ReverseLeft
             self.wheels[Axle.FrontLeft].Reverse()
@@ -125,7 +125,7 @@ class Wheels:
             self.wheels[Axle.BackLeft].Stop()
 
     def MoveBackwardRight(self):
-        if (self.direction != Direction.ReverseRight):
+        if self.direction != Direction.ReverseRight:
             self.Stop()
             self.direction = Direction.ReverseRight
             self.wheels[Axle.FrontRight].Reverse()
@@ -134,7 +134,7 @@ class Wheels:
             self.wheels[Axle.BackRight].Stop()
 
     def Speed(self, newspeed):
-        if (self.robotspeed != newspeed):
+        if self.robotspeed != newspeed:
             self.robotspeed = newspeed
             self.wheels[Axle.FrontLeft].SetSpeed(newspeed)
             self.wheels[Axle.FrontRight].SetSpeed(newspeed)
