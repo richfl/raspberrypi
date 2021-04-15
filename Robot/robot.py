@@ -1,6 +1,6 @@
 import sys
 import RPi.GPIO as GPIO
-from wheels import wheels
+from wheels import Wheels
 
 robot = wheels()
 

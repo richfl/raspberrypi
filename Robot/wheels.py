@@ -1,123 +1,143 @@
 import sys
 import RPi.GPIO as GPIO
-from wheel import wheel
+from enum import Enum
+from wheel import Wheel
 
-class wheels:
+class Axle(Enum):
+    FrontLeft = 1
+    FrontRight = 2
+    BackLeft = 3
+    BackRight = 4
+
+class Direction(Enum):
+    Stop = 0
+    Forward = 1
+    Reverse = 2
+    SpinRight = 3
+    SpinLeft = 4
+    MoveRight = 5
+    MoveLeft = 6
+    ForwardRight = 7
+    ForwardLeft = 8
+    ReverseRight = 9
+    ReverseLeft = 10
+
+class Wheels:
     def __init__(self, speed = 80, frequency = 1000):
-        self.Direction = 's'
+        self.direction = Direction.Stop
         self.robotspeed = speed
-        self.Frequency = frequency
 
         GPIO.setmode(GPIO.BOARD)
 
         self.wheels = {}
-        self.wheels['fl'] = wheel(16, 15, self.robotspeed, self.Frequency)
-        self.wheels['fr'] = wheel(22, 18, self.robotspeed, self.Frequency)
-        self.wheels['bl'] = wheel(13, 10, self.robotspeed, self.Frequency)
-        self.wheels['br'] = wheel(8, 33, self.robotspeed, self.Frequency)
-        self.stop()
+        self.wheels[Axle.FrontLeft] = Wheel(16, 15, self.robotspeed, frequency)
+        self.wheels[Axle.FrontRight] = Wheel(22, 18, self.robotspeed, frequency)
+        self.wheels[Axle.BackLeft] = Wheel(13, 10, self.robotspeed, frequency)
+        self.wheels[Axle.BackRight] = Wheel(8, 33, self.robotspeed, frequency)
+        self.Stop()
 
-    def stop(self):
-        self.wheels['fl'].stop()
-        self.wheels['fr'].stop()
-        self.wheels['bl'].stop()
-        self.wheels['br'].stop()
+    def Stop(self):
+        self.direction = Direction.Stop
+        self.wheels[Axle.FrontLeft].Stop()
+        self.wheels[Axle.FrontRight].Stop()
+        self.wheels[Axle.BackLeft].Stop()
+        self.wheels[Axle.BackRight].Stop()
 
     def Forward(self):
-        if (self.Direction != 'f'):
-            self.stop()
-            self.Direction = 'f'
-            self.wheels['fl'].forward()
-            self.wheels['fr'].forward()
-            self.wheels['br'].forward()
-            self.wheels['bl'].forward()
+        if (self.direction != Direction.Forward):
+            self.Stop()
+            self.direction = Direction.Forward
+            self.wheels[Axle.FrontLeft].Forward()
+            self.wheels[Axle.FrontRight].Forward()
+            self.wheels[Axle.BackRight].Forward()
+            self.wheels[Axle.BackLeft].Forward()
 
     def Backward(self):
-        if (self.Direction != 'b'):
-            self.stop()
-            self.Direction = 'b'
-            self.wheels['fl'].reverse()
-            self.wheels['fr'].reverse()
-            self.wheels['br'].reverse()
-            self.wheels['bl'].reverse()
+        if (self.direction != Direction.Reverse):
+            self.Stop()
+            self.direction = Direction.Reverse
+            self.wheels[Axle.FrontLeft].Reverse()
+            self.wheels[Axle.FrontRight].Reverse()
+            self.wheels[Axle.BackRight].Reverse()
+            self.wheels[Axle.BackLeft].Reverse()
                                                                 
     def SpinRight(self):
-        if (self.Direction != 'r'):
-            self.stop()
-            self.Direction = 'r'
-            self.wheels['fl'].forward()
-            self.wheels['fr'].reverse()
-            self.wheels['br'].reverse()
-            self.wheels['bl'].forward()
+        if (self.direction != Direction.SpinRight):
+            self.Stop()
+            self.direction = Direction.SpinRight
+            self.wheels[Axle.FrontLeft].Forward()
+            self.wheels[Axle.FrontRight].Reverse()
+            self.wheels[Axle.BackRight].Reverse()
+            self.wheels[Axle.BackLeft].Forward()
 
     def SpinLeft(self):
-        if (self.Direction != 'l'):
-            self.stop()
-            self.Direction = 'l'
-            self.wheels['fl'].reverse()
-            self.wheels['fr'].forward()
-            self.wheels['br'].forward()
-            self.wheels['bl'].reverse()
+        if (self.direction != Direction.SpinLeft):
+            self.Stop()
+            self.direction = Direction.SpinLeft
+            self.wheels[Axle.FrontLeft].Reverse()
+            self.wheels[Axle.FrontRight].Forward()
+            self.wheels[Axle.BackRight].Forward()
+            self.wheels[Axle.BackLeft].Reverse()
 
     def MoveRight(self):
-        if (self.Direction != 'mr'):
-            self.stop()
-            self.Direction = 'mr'
-            self.wheels['fl'].forward()
-            self.wheels['fr'].reverse()
-            self.wheels['br'].forward()
-            self.wheels['bl'].reverse()
+        if (self.direction != Direction.MoveRight):
+            self.Stop()
+            self.direction = Direction.MoveRight
+            self.wheels[Axle.FrontLeft].Forward()
+            self.wheels[Axle.FrontRight].Reverse()
+            self.wheels[Axle.BackRight].Forward()
+            self.wheels[Axle.BackLeft].Reverse()
 
     def MoveLeft(self):
-        if (self.Direction != 'ml'):
-            self.stop()
-            self.Direction = 'ml'
-            self.wheels['fl'].reverse()
-            self.wheels['fr'].forward()
-            self.wheels['br'].reverse()
-            self.wheels['bl'].forward()
+        if (self.direction != Direction.MoveLeft):
+            self.Stop()
+            self.direction = Direction.MoveLeft
+            self.wheels[Axle.FrontLeft].Reverse()
+            self.wheels[Axle.FrontRight].Forward()
+            self.wheels[Axle.BackRight].Reverse()
+            self.wheels[Axle.BackLeft].Forward()
 
     def MoveForwardRight(self):
-        if (self.Direction != 'fr'):
-            self.stop()
-            self.Direction = 'fr'
-            self.wheels['fl'].forward()
-            self.wheels['fr'].stop()
-            self.wheels['br'].forward()
-            self.wheels['bl'].stop()
+        if (self.direction != Direction.ForwardRight):
+            self.Stop()
+            self.direction = Direction.ForwardRight
+            self.wheels[Axle.FrontLeft].Forward()
+            self.wheels[Axle.FrontRight].Stop()
+            self.wheels[Axle.BackRight].Forward()
+            self.wheels[Axle.BackLeft].Stop()
 
     def MoveForwardLeft(self):
-        if (self.Direction != 'fl'):
-            self.stop()
-            self.Direction = 'fl'
-            self.wheels['fr'].forward()
-            self.wheels['fl'].stop()
-            self.wheels['bl'].forward()
-            self.wheels['br'].stop()
+        if (self.direction != Direction.ForwardLeft):
+            self.Stop()
+            self.direction = Direction.ForwardLeft
+            self.wheels[Axle.FrontRight].Forward()
+            self.wheels[Axle.FrontLeft].Stop()
+            self.wheels[Axle.BackLeft].Forward()
+            self.wheels[Axle.BackRight].Stop()
 
     def MoveBackwardLeft(self):
-        if (self.Direction != 'bl'):
-            self.stop()
-            self.Direction = 'bl'
-            self.wheels['fl'].reverse()
-            self.wheels['fr'].stop()
-            self.wheels['br'].reverse()
-            self.wheels['bl'].stop()
+        if (self.direction != Direction.ReverseLeft):
+            self.Stop()
+            self.direction = Direction.ReverseLeft
+            self.wheels[Axle.FrontLeft].Reverse()
+            self.wheels[Axle.FrontRight].Stop()
+            self.wheels[Axle.BackRight].Reverse()
+            self.wheels[Axle.BackLeft].Stop()
 
     def MoveBackwardRight(self):
-        if (self.Direction != 'br'):
-            self.stop()
-            self.Direction = 'br'
-            self.wheels['fr'].reverse()
-            self.wheels['fl'].stop()
-            self.wheels['bl'].reverse()
-            self.wheels['br'].stop()
+        if (self.direction != Direction.ReverseRight):
+            self.Stop()
+            self.direction = Direction.ReverseRight
+            self.wheels[Axle.FrontRight].Reverse()
+            self.wheels[Axle.FrontLeft].Stop()
+            self.wheels[Axle.BackLeft].Reverse()
+            self.wheels[Axle.BackRight].Stop()
 
     def Speed(self, newspeed):
         if (self.robotspeed != newspeed):
             self.robotspeed = newspeed
-            self.wheels['fl'].setspeed(newspeed)
-            self.wheels['fr'].setspeed(newspeed)
-            self.wheels['bl'].setspeed(newspeed)
-            self.wheels['br'].setspeed(newspeed)
+            self.wheels[Axle.FrontLeft].SetSpeed(newspeed)
+            self.wheels[Axle.FrontRight].SetSpeed(newspeed)
+            self.wheels[Axle.BackLeft].SetSpeed(newspeed)
+            self.wheels[Axle.BackRight].SetSpeed(newspeed)
 
