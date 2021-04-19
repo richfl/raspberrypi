@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import threading
 import keyboard
+from servos import Servos, ServoEnd, ServoDirection
 
 # TODO
 # run two sensors (front/back - make both use the same trigger)
@@ -10,12 +11,16 @@ import keyboard
 GPIO.setmode(GPIO.BOARD)
  
 #set GPIO Pins
-GPIO_TRIGGER = 18
-GPIO_ECHO = 24
- 
+GPIO_TRIGGER = 37
+GPIO_FRONTECHO = 32
+GPIO_BACKECHO = 31
+
 #set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-GPIO.setup(GPIO_ECHO, GPIO.IN)
+GPIO.setup(GPIO_FRONTECHO, GPIO.IN)
+GPIO.setup(GPIO_BACKECHO, GPIO.IN)
+
+servos = Servos(6, 7)
 
 frontdistance = float(-1.0)
 endthread = False

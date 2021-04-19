@@ -2,7 +2,7 @@ import sys
 import RPi.GPIO as GPIO
 from enum import Enum
 
-class WheelDirection(Enum)
+class WheelDirection(Enum):
     Stop = 0
     Forward = 1
     Reverse = 2

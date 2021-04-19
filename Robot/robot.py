@@ -2,7 +2,7 @@ import sys
 import RPi.GPIO as GPIO
 from wheels import Wheels
 
-robot = wheels()
+robot = Wheels()
 x = 's'
 
 try:
@@ -14,7 +14,7 @@ try:
         elif x == 'b':
             robot.Backward()
         elif x == 's' or x == '0':
-            robot.stop()
+            robot.Stop()
         elif x == 'l':
             robot.SpinLeft()
         elif x == 'r':
