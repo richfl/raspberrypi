@@ -27,13 +27,13 @@ class Wheels:
         self.direction = Direction.Stop
         self.robotspeed = speed
 
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(GPIO.BCM)
 
         self.wheels = {}
-        self.wheels[Axle.FrontLeft] = Wheel(16, 15, self.robotspeed, frequency)
-        self.wheels[Axle.FrontRight] = Wheel(22, 18, self.robotspeed, frequency)
-        self.wheels[Axle.BackLeft] = Wheel(13, 10, self.robotspeed, frequency)
-        self.wheels[Axle.BackRight] = Wheel(8, 33, self.robotspeed, frequency)
+        self.wheels[Axle.FrontLeft] = Wheel(23, 22, self.robotspeed, frequency)
+        self.wheels[Axle.FrontRight] = Wheel(25, 24, self.robotspeed, frequency)
+        self.wheels[Axle.BackLeft] = Wheel(27, 15, self.robotspeed, frequency)
+        self.wheels[Axle.BackRight] = Wheel(14, 13, self.robotspeed, frequency)
         self.Stop()
 
     def Stop(self):

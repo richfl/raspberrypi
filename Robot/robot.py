@@ -1,7 +1,10 @@
 import sys
 import RPi.GPIO as GPIO
 from wheels import Wheels
+from ultrasonic import DistanceSensors
 
+sensors = DistanceSensors()
+sensors.StartScanner(0.5)
 robot = Wheels()
 x = 's'
 
@@ -35,5 +38,11 @@ try:
             robot.Speed(int(x) * 10)
         elif x > '0' and x <= '3':
             robot.Speed(100)
+            
+        print("Front")
+        print(sensors.frontDistance)
+        print("back")
+        print(sensors.backDistance)
 finally:
+    sensors.StopScanner()
     GPIO.cleanup()

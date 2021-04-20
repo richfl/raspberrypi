@@ -1,28 +1,25 @@
 import RPi.GPIO as GPIO
 import time
 import threading
-import keyboard
 from servos import Servos, ServoEnd, ServoDirection
 
-# TODO
-# run two sensors (front/back - make both use the same trigger)
-# https://thepihut.com/blogs/raspberry-pi-tutorials/hc-sr04-ultrasonic-range-sensor-on-the-raspberry-pi
+class DistanceSensors:
 
-class DistanceSensors(self):
-    GPIO_TRIGGER = 37
-    GPIO_FRONTECHO = 32
-    GPIO_BACKECHO = 31
+    def __init__(self):
+        self.GPIO_TRIGGER = 20
+        self.GPIO_FRONTECHO = 6
+        self.GPIO_BACKECHO = 12
 
-    FRONTSERVO = 6
-    BACKSERVO = 7
+        FRONTSERVO = 6
+        BACKSERVO = 7
 
-    def __init__(self)       
         #set GPIO direction (IN / OUT)
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(GPIO_FRONTECHO, GPIO.IN)
-        GPIO.setup(GPIO_BACKECHO, GPIO.IN)
-        GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-        GPIO.output(GPIO_TRIGGER, False)
+        
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.GPIO_FRONTECHO, GPIO.IN)
+        GPIO.setup(self.GPIO_BACKECHO, GPIO.IN)
+        GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
+        GPIO.output(self.GPIO_TRIGGER, False)
         time.sleep(1)
 
         # initialise direction servos
@@ -48,50 +45,49 @@ class DistanceSensors(self):
             ServoDirection.Right: -1.0
         }
 
-        self.ultrathread = threading.Thread(target=self.GetDistance, args=(1,))
-
-    def StartScanner(self):
+    def StartScanner(self, delay):
         self.endthread = False
+        self.ultrathread = threading.Thread(target=self.GetDistance, args=(delay,))
         self.ultrathread.start()
         self.scannerActive = True
 
     def StopScanner(self):
         self.endthread = True
-        thread.join(self.ultrathread)
+        self.ultrathread.join()
         self.scannerActive = False
 
     # threaded function
-    def GetDistance(self):
+    def GetDistance(self, delay):
         while not(self.endthread):
             frontEcho = True
             backEcho = True
             frontEchoActive = False
             backEchoActive = False
-            FrontStartTime = time.time()
-            FrontStopTime = FrontStartTime
-            BackStartTime = FrontStartTime
-            BackStopTime = FrontStartTime
+            frontStartTime = time.time()
+            frontStopTime = frontStartTime
+            backStartTime = frontStartTime
+            backStopTime = frontStartTime
 
             # Activate echo trigger (this is shared between front and rear sensors)
-            GPIO.output(GPIO_TRIGGER, True)
+            GPIO.output(self.GPIO_TRIGGER, True)
             time.sleep(0.00001)
-            GPIO.output(GPIO_TRIGGER, False)
+            GPIO.output(self.GPIO_TRIGGER, False)
 
             # Get current front and back distances
             while frontEcho or backEcho:
-                if GPIO.input(GPIO_FRONTECHO) == 0 and frontEchoActive:
+                if GPIO.input(self.GPIO_FRONTECHO) == 0 and frontEchoActive:
                     frontEcho = False
-                elif GPIO.input(GPIO_FRONTECHO) == 0 and frontEcho:
-                    FrontStartTime = time.time()
-                elif GPIO.input(GPIO_FRONTECHO) == 1:
+                elif GPIO.input(self.GPIO_FRONTECHO) == 0 and frontEcho:
+                    frontStartTime = time.time()
+                elif GPIO.input(self.GPIO_FRONTECHO) == 1:
                     frontEchoActive = True
                     frontStopTime = time.time()
 
-                if GPIO.input(GPIO_BACKECHO) == 0 and backEchoActive:
+                if GPIO.input(self.GPIO_BACKECHO) == 0 and backEchoActive:
                     backEcho = False
-                elif GPIO.input(GPIO_BACKECHO) == 0 and backEcho:
-                    BackStartTime = time.time()
-                elif GPIO.input(GPIO_BACKECHO) == 1:
+                elif GPIO.input(self.GPIO_BACKECHO) == 0 and backEcho:
+                    backStartTime = time.time()
+                elif GPIO.input(self.GPIO_BACKECHO) == 1:
                     backEchoActive = True
                     backStopTime = time.time()
 
@@ -105,23 +101,26 @@ class DistanceSensors(self):
 
             # move servos to next direction to scan
             self.servoDirection = self.servos.NextScanPosition()
+            time.sleep(delay)
 
 
-try:
-    sensors = DistanceSensors()
-    sensors.StartScanner()
+# try:
+#     sensors = DistanceSensors()
+#     sensors.StartScanner(0.5)
 
-    while sensors.scannerActive:
-        if keyboard.read_key() == 'e':
-            sensors.StopScanner()
+#     while sensors.scannerActive:
+#         # if keyboard.read_key() == 'e':
+#         #     sensors.StopScanner()
         
-        print("Front" + sensors.frontDistance)
-        print("back" + sensors.backDistance)
-        time.sleep(1)
+#         print("Front")
+#         print(sensors.frontDistance)
+#         print("back")
+#         print(sensors.backDistance)
+#         time.sleep(1)
 
-    # Reset by pressing CTRL + C
-except KeyboardInterrupt:
-    sensors.StopScanner()
-    GPIO.cleanup()
-finally:
-    GPIO.cleanup()
+#     # Reset by pressing CTRL + C
+# except KeyboardInterrupt:
+#     sensors.StopScanner()
+#     GPIO.cleanup()
+# finally:
+#     GPIO.cleanup()

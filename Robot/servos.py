@@ -3,9 +3,6 @@ import time
 from adafruit_servokit import ServoKit
 from enum import IntEnum
 
-front = 6
-back = 7
-
 class ServoEnd(IntEnum):
     Front = 1
     Back = 2
@@ -49,8 +46,8 @@ class Servos:
         time.sleep(0.5)
         return self.scanArray[self.scanIndex]
 
-servos = Servos(6, 7)
-servos.FirstScanPosition()
-while True:
-    position = servos.NextScanPosition()
-    print(position)
+#servos = Servos(6, 7)
+#servos.FirstScanPosition()
+#while True:
+#    position = servos.NextScanPosition()
+#    print(position)
