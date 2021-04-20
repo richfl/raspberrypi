@@ -16,19 +16,20 @@ class DistanceSensors(self):
     FRONTSERVO = 6
     BACKSERVO = 7
 
-    def __init__(self)
-         # initialise direction servos
+    def __init__(self)       
+        #set GPIO direction (IN / OUT)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(GPIO_FRONTECHO, GPIO.IN)
+        GPIO.setup(GPIO_BACKECHO, GPIO.IN)
+        GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+        GPIO.output(GPIO_TRIGGER, False)
+        time.sleep(1)
+
+        # initialise direction servos
         self.servos = Servos(FRONTSERVO, BACKSERVO)
         self.servoDirection = self.servos.FirstScanPosition()
         self.scannerActive = False
-
         self.endthread = False
-        
-        #set GPIO direction (IN / OUT)
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-        GPIO.setup(GPIO_FRONTECHO, GPIO.IN)
-        GPIO.setup(GPIO_BACKECHO, GPIO.IN)
 
         # initialise current distance readings
         self.frontDistance = {
