@@ -141,3 +141,26 @@ class Wheels:
             self.wheels[Axle.BackLeft].SetSpeed(newspeed)
             self.wheels[Axle.BackRight].SetSpeed(newspeed)
 
+    def Move(moveDirection):
+        if moveDirection == Direction.Forward:
+            Forward()
+        elif moveDirection == Direction.Reverse:
+            Backward()
+        elif moveDirection == Direction.Stop:
+            Stop()
+        elif moveDirection == Direction.MoveRight:
+            MoveRight()
+        elif moveDirection == Direction.MoveLeft:
+            MoveLeft()
+        elif moveDirection == Direction.SpinRight:
+            SpinRight()
+        elif moveDirection == Direction.SpinLeft:
+            SpinLeft()
+        elif moveDirection == Direction.ForwardRight:
+            MoveForwardRight()
+        elif moveDirection == Direction.ForwardLeft:
+            MoveForwardLeft()
+        elif moveDirection == Direction.ReverseRight:
+            MoveReverseRight()
+        elif moveDirection == Direction.ForwardLeft:
+            MoveReverseLeft()

@@ -45,11 +45,27 @@ class DistanceSensors:
             ServoDirection.Right: -1.0
         }
 
-    def StartScanner(self, delay):
+    def StartScanner(self, delay, getFirstScan = False):
         self.endthread = False
         self.ultrathread = threading.Thread(target=self.GetDistance, args=(delay,))
         self.ultrathread.start()
         self.scannerActive = True
+        if getFirstScan:
+            done = False
+            attempts = 3
+            while not(done) and attempts > 0:
+                time.sleep(delay * 5)
+                done = True
+                for key in self.frontDistance:
+                    if in self.frontDistance[key] == -1.0:
+                        done = False
+                for key in self.backDistance:
+                    if in self.backDistance[key] == -1.0:
+                        done = False
+                attempts--
+            return done
+        else
+            return True
 
     def StopScanner(self):
         self.endthread = True
