@@ -20,7 +20,6 @@ class DistanceSensors:
         GPIO.setup(self.GPIO_BACKECHO, GPIO.IN)
         GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
         GPIO.output(self.GPIO_TRIGGER, False)
-        time.sleep(1)
 
         # initialise direction servos
         self.servos = Servos(FRONTSERVO, BACKSERVO)
@@ -44,33 +43,7 @@ class DistanceSensors:
             ServoDirection.OffRight: -1.0,
             ServoDirection.Right: -1.0
         }
-
-    def StartScanner(self, delay, getFirstScan = False):
-        self.endthread = False
-        self.ultrathread = threading.Thread(target=self.GetDistance, args=(delay,))
-        self.ultrathread.start()
-        self.scannerActive = True
-        if getFirstScan:
-            done = False
-            attempts = 3
-            while not(done) and attempts > 0:
-                time.sleep(delay * 5)
-                done = True
-                for key in self.frontDistance:
-                    if in self.frontDistance[key] == -1.0:
-                        done = False
-                for key in self.backDistance:
-                    if in self.backDistance[key] == -1.0:
-                        done = False
-                attempts--
-            return done
-        else
-            return True
-
-    def StopScanner(self):
-        self.endthread = True
-        self.ultrathread.join()
-        self.scannerActive = False
+        time.sleep(1)
 
     # threaded function
     def GetDistance(self, delay):
@@ -79,7 +52,7 @@ class DistanceSensors:
             backEcho = True
             frontEchoActive = False
             backEchoActive = False
-            frontStartTime = time.time()
+            timeoutStart = frontStartTime = time.time()
             frontStopTime = frontStartTime
             backStartTime = frontStartTime
             backStopTime = frontStartTime
@@ -106,6 +79,9 @@ class DistanceSensors:
                 elif GPIO.input(self.GPIO_BACKECHO) == 1:
                     backEchoActive = True
                     backStopTime = time.time()
+                # abort if we haven't got a distance within 1 second
+                if (time.time() - timeoutStart > 1.0):
+                    frontEcho = backEcho = False
 
             # time difference between start and return
             frontdistance = (frontStopTime - frontStartTime) * 17150
@@ -119,24 +95,50 @@ class DistanceSensors:
             self.servoDirection = self.servos.NextScanPosition()
             time.sleep(delay)
 
+    def StartScanner(self, delay, getFirstScan = False):
+        self.endthread = False
+        self.ultrathread = threading.Thread(target=self.GetDistance, args=(delay,))
+        self.ultrathread.start()
+        self.scannerActive = True
+        if getFirstScan:
+            done = False
+            attempts = 3
+            while not(done) and attempts > 0:
+                time.sleep(delay * 5)
+                done = True
+                for key in self.frontDistance:
+                    if self.frontDistance[key] == -1.0:
+                        done = False
+                for key in self.backDistance:
+                    if self.backDistance[key] == -1.0:
+                        done = False
+                attempts -= 1
+            return done
+        else:
+            return True
 
-# try:
-#     sensors = DistanceSensors()
-#     sensors.StartScanner(0.5)
+    def StopScanner(self):
+        self.endthread = True
+        self.ultrathread.join()
+        self.scannerActive = False
 
-#     while sensors.scannerActive:
-#         # if keyboard.read_key() == 'e':
-#         #     sensors.StopScanner()
-        
-#         print("Front")
-#         print(sensors.frontDistance)
-#         print("back")
-#         print(sensors.backDistance)
-#         time.sleep(1)
 
-#     # Reset by pressing CTRL + C
-# except KeyboardInterrupt:
-#     sensors.StopScanner()
-#     GPIO.cleanup()
-# finally:
-#     GPIO.cleanup()
+
+
+#try:
+#    sensors = DistanceSensors()
+#    sensors.StartScanner(0.5, True)
+#    while sensors.scannerActive:
+        # if keyboard.read_key() == 'e':
+        #     sensors.StopScanner()
+       
+#        print("Front")
+#        print(sensors.frontDistance)
+#        print("back")
+#        print(sensors.backDistance)
+#        time.sleep(1)
+     # Reset by pressing CTRL + C
+#except KeyboardInterrupt:
+#    sensors.StopScanner()
+#finally:
+#    GPIO.cleanup()

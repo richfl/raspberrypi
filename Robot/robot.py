@@ -3,8 +3,10 @@ import RPi.GPIO as GPIO
 from wheels import Wheels
 from ultrasonic import DistanceSensors
 
+GPIO.setmode(GPIO.BCM)
 sensors = DistanceSensors()
 sensors.StartScanner(0.5)
+
 robot = Wheels()
 x = 's'
 

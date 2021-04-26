@@ -27,8 +27,6 @@ class Wheels:
         self.direction = Direction.Stop
         self.robotspeed = speed
 
-        GPIO.setmode(GPIO.BCM)
-
         self.wheels = {}
         self.wheels[Axle.FrontLeft] = Wheel(23, 22, self.robotspeed, frequency)
         self.wheels[Axle.FrontRight] = Wheel(25, 24, self.robotspeed, frequency)
@@ -141,26 +139,26 @@ class Wheels:
             self.wheels[Axle.BackLeft].SetSpeed(newspeed)
             self.wheels[Axle.BackRight].SetSpeed(newspeed)
 
-    def Move(moveDirection):
+    def Move(self, moveDirection):
         if moveDirection == Direction.Forward:
-            Forward()
+            self.Forward()
         elif moveDirection == Direction.Reverse:
-            Backward()
+            self.Backward()
         elif moveDirection == Direction.Stop:
-            Stop()
+            self.Stop()
         elif moveDirection == Direction.MoveRight:
-            MoveRight()
+            self.MoveRight()
         elif moveDirection == Direction.MoveLeft:
-            MoveLeft()
+            self.MoveLeft()
         elif moveDirection == Direction.SpinRight:
-            SpinRight()
+            self.SpinRight()
         elif moveDirection == Direction.SpinLeft:
-            SpinLeft()
+            self.SpinLeft()
         elif moveDirection == Direction.ForwardRight:
-            MoveForwardRight()
+            self.MoveForwardRight()
         elif moveDirection == Direction.ForwardLeft:
-            MoveForwardLeft()
+            self.MoveForwardLeft()
         elif moveDirection == Direction.ReverseRight:
-            MoveReverseRight()
+            self.MoveReverseRight()
         elif moveDirection == Direction.ForwardLeft:
-            MoveReverseLeft()
+            self.MoveReverseLeft()

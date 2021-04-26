@@ -18,6 +18,9 @@ class Wheel:
         GPIO.setup(backwardpin, GPIO.OUT)
         self.backwardpwm = GPIO.PWM(backwardpin, frequency)
 
+        self.forwardpwm.stop()
+        self.backwardpwm.stop()
+
     def Forward(self):
         if self.state == WheelDirection.Reverse:
             self.backwardpwm.stop()
@@ -39,9 +42,9 @@ class Wheel:
         if speed != self.wheelspeed:
             self.wheelspeed = speed
             if self.state == WheelDirection.Forward:
-                self.forward()
+                self.Forward()
             elif self.state == WheelDirection.Reverse:
-                self.reverse()
+                self.Reverse()
 
     def State(self):
         return self.state
