@@ -43,10 +43,10 @@ def GetMaxDistanceDirection():
     maxFrontDistance = max(sensors.frontDistance.values())
 
     if maxRearDistance > maxFrontDistance:
-        res = [key for key in sensors.backDistance if sensors.backDistance[key] == maxRearDistance]
+        res = [key for key in sensors.backDistance if sensors.backDistance[key] >= maxRearDistance]
         return (ServoEnd.Back, res[0], maxRearDistance)
     else:
-        res = [key for key in sensors.frontDistance if sensors.frontDistance[key] == maxFrontDistance]
+        res = [key for key in sensors.frontDistance if sensors.frontDistance[key] >= maxFrontDistance]
         return (ServoEnd.Front, res[0], maxFrontDistance)
 
 def GetMinDistanceDirection():
@@ -114,8 +114,9 @@ try:
 
     # work out if we want to go forwards or backwards based on available space
     currentDirection = GetFurthestEnd()
-    if currentDirection[1] < 30.0:
-        # if we have less than 30 cm left in our preferred direction see if another direction would be better
+    
+    # if we have less than 10 cm left in our preferred direction see if another direction would be better
+    while currentDirection[1] < 10.0:
         RotateToBiggestSpace()
         currentDirection = GetFurthestEnd()
     SetSpeedBasedOnDistance(currentDirection[1])
@@ -125,12 +126,11 @@ try:
         # adjust speed as we get closer to a barrier
         SetSpeedBasedOnDistance(GetDistanceToNextObstacle())
 
+        # change direction if there is less than 10cm left in direction of travel  
         if GetDistanceToNextObstacle() < 10.0: 
-            # change direction if there is less than 10cm left in direction of travel
             newDirection = RotateToBiggestSpace()
-            currentDirection = newDirection[0]
             SetSpeedBasedOnDistance(GetDistanceToNextObstacle())
-            robot.Move(currentDirection)
+            robot.Move(newDirection[0])
 
 finally:
     sensors.StopScanner()
