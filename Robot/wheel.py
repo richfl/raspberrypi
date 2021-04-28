@@ -13,12 +13,13 @@ class Wheel:
         self.state = WheelDirection.Stop
 
         GPIO.setup(forwardpin, GPIO.OUT)
+        GPIO.output(forwardpin, GPIO.LOW)
         self.forwardpwm = GPIO.PWM(forwardpin, frequency)
+        self.forwardpwm.stop()
 
         GPIO.setup(backwardpin, GPIO.OUT)
+        GPIO.output(backwardpin, GPIO.LOW)
         self.backwardpwm = GPIO.PWM(backwardpin, frequency)
-
-        self.forwardpwm.stop()
         self.backwardpwm.stop()
 
     def Forward(self):

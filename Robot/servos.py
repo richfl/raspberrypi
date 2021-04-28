@@ -19,7 +19,8 @@ class Servos:
         self.front = frontPort
         self.back = backPort
         self.kit = ServoKit(channels=16)
-        self.scanArray = [ServoDirection.Right, ServoDirection.OffRight, ServoDirection.Ahead, ServoDirection.OffLeft, ServoDirection.Left]
+        self.frontscanArray = [ServoDirection.Right, ServoDirection.OffRight, ServoDirection.Ahead, ServoDirection.OffLeft, ServoDirection.Left]
+        self.backscanArray = [ServoDirection.Left, ServoDirection.OffLeft, ServoDirection.Ahead, ServoDirection.OffRight, ServoDirection.Right]
         self.scanIndex = 0
         self.scanDirection = 1
 
@@ -30,21 +31,19 @@ class Servos:
             self.kit.servo[self.back].angle = 180 - direction
 
     def NextScanPosition(self):
-        if (self.scanDirection == 1 and self.scanIndex == (len(self.scanArray) - 1)) or (self.scanDirection == -1 and self.scanIndex == 0):
+        if (self.scanDirection == 1 and self.scanIndex == (len(self.frontscanArray) - 1)) or (self.scanDirection == -1 and self.scanIndex == 0):
             self.scanDirection = -self.scanDirection
-        self.MoveServo(ServoEnd.Front, self.scanArray[self.scanIndex])
-        self.MoveServo(ServoEnd.Back, self.scanArray[self.scanIndex])
+        self.MoveServo(ServoEnd.Front, self.frontscanArray[self.scanIndex])
+        self.MoveServo(ServoEnd.Back, self.backscanArray[self.scanIndex])
         self.scanIndex += self.scanDirection
-        time.sleep(0.1)
-        return self.scanArray[self.scanIndex]
+        return self.frontscanArray[self.scanIndex], self.backscanArray[self.scanIndex]
 
     def FirstScanPosition(self):
         self.scanIndex = 0
         self.scanDirection = 1
         self.MoveServo(ServoEnd.Front, ServoDirection.Right)
-        self.MoveServo(ServoEnd.Back, ServoDirection.Right)
-        time.sleep(0.5)
-        return self.scanArray[self.scanIndex]
+        self.MoveServo(ServoEnd.Back, ServoDirection.Left)
+        return self.frontscanArray[self.scanIndex], self.backscanArray[self.scanIndex]
 
 #servos = Servos(6, 7)
 #servos.FirstScanPosition()
