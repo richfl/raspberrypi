@@ -31,11 +31,11 @@ class Servos:
             self.kit.servo[self.back].angle = 180 - direction
 
     def NextScanPosition(self):
+        self.scanIndex += self.scanDirection
         if (self.scanDirection == 1 and self.scanIndex == (len(self.frontscanArray) - 1)) or (self.scanDirection == -1 and self.scanIndex == 0):
             self.scanDirection = -self.scanDirection
         self.MoveServo(ServoEnd.Front, self.frontscanArray[self.scanIndex])
         self.MoveServo(ServoEnd.Back, self.backscanArray[self.scanIndex])
-        self.scanIndex += self.scanDirection
         return self.frontscanArray[self.scanIndex], self.backscanArray[self.scanIndex]
 
     def FirstScanPosition(self):

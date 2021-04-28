@@ -6,7 +6,8 @@ from servos import Servos, ServoEnd, ServoDirection
 class DistanceSensors:
 
     def __init__(self):
-        self.GPIO_TRIGGER = 20
+        self.GPIO_FRONTTRIGGER = 20
+        self.GPIO_BACKTRIGGER = 5
         self.GPIO_FRONTECHO = 6
         self.GPIO_BACKECHO = 12
 
@@ -18,8 +19,10 @@ class DistanceSensors:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.GPIO_FRONTECHO, GPIO.IN)
         GPIO.setup(self.GPIO_BACKECHO, GPIO.IN)
-        GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
-        GPIO.output(self.GPIO_TRIGGER, False)
+        GPIO.setup(self.GPIO_FRONTTRIGGER, GPIO.OUT)
+        GPIO.output(self.GPIO_FRONTTRIGGER, False)
+        GPIO.setup(self.GPIO_BACKTRIGGER, GPIO.OUT)
+        GPIO.output(self.GPIO_BACKTRIGGER, False)
 
         # initialise direction servos
         self.servos = Servos(FRONTSERVO, BACKSERVO)
@@ -50,93 +53,51 @@ class DistanceSensors:
     # threaded function
     def GetDistance(self, delay):
         while not(self.endthread):
-            frontResults = [-1.0, -1.0, -1.0]
-            backResults = [-1.0, -1.0, -1.0]
-            for i in range(3):
-                frontEcho = True
-                backEcho = True
-                frontEchoActive = False
-                backEchoActive = False
-                timeoutStart = frontStartTime = frontStopTime = backStartTime = backStopTime = time.time()
+            frontError = backError = False
 
-                # Activate echo trigger (this is shared between front and rear sensors)
-                GPIO.output(self.GPIO_TRIGGER, True)
-                time.sleep(0.00001)
-                GPIO.output(self.GPIO_TRIGGER, False)
-                frontError = backError = False
+            # Activate echo trigger (this is shared between front and rear sensors)
+            GPIO.output(self.GPIO_FRONTTRIGGER, True)
+            time.sleep(0.00001)
+            GPIO.output(self.GPIO_FRONTTRIGGER, False)
 
-                while GPIO.input(self.GPIO_FRONTECHO) == 0:
-                    frontStartTime =  time.time()
-                    if frontStartTime - frontStopTime > 0.02:
-                        FrontError = True
-                        break
-                while GPIO.input(self.GPIO_FRONTECHO) == 1 and not(frontError):
-                    frontStopTime =  time.time()
-                    if frontStopTime - frontStartTime > 0.02:
-                        FrontError = True
-                        break
+            frontStartTime = frontStopTime = time.time()
+            while GPIO.input(self.GPIO_FRONTECHO) == 0:
+                frontStartTime = time.time()
+                if frontStartTime - frontStopTime > 0.02:
+                    frontError = True
+                    break
+            while GPIO.input(self.GPIO_FRONTECHO) == 1 and not(frontError):
+                frontStopTime = time.time()
+                if frontStopTime - frontStartTime > 0.02:
+                    frontError = True
+                    break
+            time.sleep(0.08)
 
-                # Activate echo trigger (this is shared between front and rear sensors)
-                GPIO.output(self.GPIO_TRIGGER, True)
-                time.sleep(0.00001)
-                GPIO.output(self.GPIO_TRIGGER, False)
+            # Activate echo trigger (this is shared between front and rear sensors)
+            GPIO.output(self.GPIO_BACKTRIGGER, True)
+            time.sleep(0.00001)
+            GPIO.output(self.GPIO_BACKTRIGGER, False)
+            
+            backStartTime = backStopTime = time.time()
+            while GPIO.input(self.GPIO_BACKECHO) == 0:
+                backStartTime = time.time()
+                if backStartTime - backStopTime > 0.02:
+                    backError = True
+                    break
+            while GPIO.input(self.GPIO_BACKECHO) == 1 and not (backError):
+                backStopTime = time.time()
+                if backStopTime - backStartTime > 0.02:
+                    backError = True
+                    break
 
-                while GPIO.input(self.GPIO_BACKECHO) == 0:
-                    backStartTime =  time.time()
-                    if backStartTime - backStopTime > 0.02:
-                        backError = True
-                        break
-                while GPIO.input(self.GPIO_BACKECHO) == 1 and not (backError):
-                    backStopTime =  time.time()
-                    if backStopTime - backStartTime > 0.02:
-                        backError = True
-                        break
+            # time difference between start and return
+            frontdistance = (frontStopTime - frontStartTime) * 17150
+            backdistance = (backStopTime - backStartTime) * 17150
 
-                # Get current front and back distances
-                # while frontEcho or backEcho:
-                #     currentTime = time.time()
-
-                #     # front sensor state machine
-                #     if GPIO.input(self.GPIO_FRONTECHO) == 0 and frontEchoActive:
-                #         frontEcho = False
-                #     elif GPIO.input(self.GPIO_FRONTECHO) == 0 and frontEcho:
-                #         frontStartTime = currentTime
-                #     elif GPIO.input(self.GPIO_FRONTECHO) == 1:
-                #         frontEchoActive = True
-                #         frontStopTime = currentTime
-
-                #     # rear sensor state machine
-                #     if GPIO.input(self.GPIO_BACKECHO) == 0 and backEchoActive:
-                #         backEcho = False
-                #     elif GPIO.input(self.GPIO_BACKECHO) == 0 and backEcho:
-                #         backStartTime = currentTime
-                #     elif GPIO.input(self.GPIO_BACKECHO) == 1:
-                #         backEchoActive = True
-                #         backStopTime = currentTime
-
-                #     # abort if we haven't got a distance within 1 second
-                #     if (currentTime - timeoutStart > 1.0):
-                #         frontEcho = backEcho = False
-                #         print("distance sensor timeout")
-
-                # time difference between start and return
-                frontdistance = (frontStopTime - frontStartTime) * 17150
-                backdistance = (backStopTime - backStartTime) * 17150
-
-                # save front and back distance for current servo direction
-                if frontdistance > 0 and not(frontError):
-                    frontResults[i] = frontdistance
-                if backdistance > 0 and not(backError):
-                    backResults[i] = backdistance
-                time.sleep(0.05)
-
-            frontResults.sort()
-            backResults.sort()
-
-            if frontResults[1] > 0:
-                self.frontDistance[self.frontServoDirection] = frontResults[1] 
-            if backResults[1] > 0:
-                self.backDistance[self.backServoDirection] = backResults[1]
+            if frontdistance > 0 and not(frontError):
+                self.frontDistance[self.frontServoDirection] = frontdistance
+            if backdistance> 0 and not(backError):
+                self.backDistance[self.backServoDirection] = backdistance
 
             # move servos to next direction to scan
             servoDirections = self.servos.NextScanPosition()
@@ -171,21 +132,20 @@ class DistanceSensors:
         self.ultrathread.join()
         self.scannerActive = False
 
-
-try:
-    sensors = DistanceSensors()
-    sensors.StartScanner(0.4, True)
-    while sensors.scannerActive:
-        # if keyboard.read_key() == 'e':
-        #     sensors.StopScanner()
+# try:
+#     sensors = DistanceSensors()
+#     sensors.StartScanner(0.2, True)
+#     while sensors.scannerActive:
+#         # if keyboard.read_key() == 'e':
+#         #     sensors.StopScanner()
        
-        print("Front")
-        print(sensors.frontDistance)
-        print("back")
-        print(sensors.backDistance)
-        time.sleep(1)
-     # Reset by pressing CTRL + C
-except KeyboardInterrupt:
-    sensors.StopScanner()
-finally:
-    GPIO.cleanup()
+#         print("Front")
+#         print(sensors.frontDistance)
+#         print("back")
+#         print(sensors.backDistance)
+#         time.sleep(1)
+#      # Reset by pressing CTRL + C
+# except KeyboardInterrupt:
+#     sensors.StopScanner()
+# finally:
+#     GPIO.cleanup()

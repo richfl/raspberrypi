@@ -11,7 +11,7 @@ class AutoRobot:
         self.robot = Wheels()
         
         # start distance scanning
-        if not(self.sensors.StartScanner(0.5, True)):
+        if not(self.sensors.StartScanner(0.2, True)):
             raise "Distance sensors not working"
 
     def GetDistanceToNextObstacle(self):
@@ -44,8 +44,10 @@ class AutoRobot:
             Work out if there is more space infront or behind and ignore sides
         '''
         if self.sensors.backDistance[ServoDirection.Ahead] > self.sensors.frontDistance[ServoDirection.Ahead]:
+            print("Furthest = Reverse", self.sensors.backDistance[ServoDirection.Ahead])
             return (Direction.Reverse, self.sensors.backDistance[ServoDirection.Ahead])
         else:
+            print("Furthest = Forward", self.sensors.frontDistance[ServoDirection.Ahead])
             return (Direction.Forward, self.sensors.frontDistance[ServoDirection.Ahead])
 
     def GetMaxDistanceDirection(self):
@@ -56,10 +58,10 @@ class AutoRobot:
         maxFrontDistance = max(self.sensors.frontDistance.values())
 
         if maxRearDistance > maxFrontDistance:
-            res = [key for key in sensors.backDistance if self.sensors.backDistance[key] >= maxRearDistance]
+            res = [key for key in self.sensors.backDistance if self.sensors.backDistance[key] >= maxRearDistance]
             return (ServoEnd.Back, res[0], maxRearDistance)
         else:
-            res = [key for key in sensors.frontDistance if self.sensors.frontDistance[key] >= maxFrontDistance]
+            res = [key for key in self.sensors.frontDistance if self.sensors.frontDistance[key] >= maxFrontDistance]
             return (ServoEnd.Front, res[0], maxFrontDistance)
 
     def GetMinDistanceDirection(self):
@@ -77,16 +79,16 @@ class AutoRobot:
             return (ServoEnd.Front, res[0], minFrontDistance)
 
     def SetSpeedBasedOnDistance(self, distance):
-        if distance < 5.0:
+        if distance < 15.0:
             self.robot.Stop()
-        elif distance < 10.0:
-            self.robot.Speed(60)
         elif distance < 20.0:
-            self.robot.Speed(70)
-        elif distance < 30.0:
+            self.robot.Speed(40)
+        elif distance < 40.0:
+            self.robot.Speed(50)
+        elif distance < 60.0:
             self.robot.Speed(80) 
         else:
-            self.robot.Speed(90) 
+            self.robot.Speed(100) 
         return self.robot.robotspeed
 
     def RotateToBiggestSpace(self):
@@ -96,7 +98,7 @@ class AutoRobot:
         '''
         while True: # repeat until the front or back is pointing to the biggest space
             preferredDirection = self.GetMaxDistanceDirection()
-    
+            print("rotating, preferred direction is ", preferredDirection)
             # if the best direction is forward or reverse don't spin and return
             if preferredDirection[1] == ServoDirection.Ahead:
                 if preferredDirection[0] == ServoEnd.Front:
@@ -132,22 +134,26 @@ try:
     currentDirection = autonomousRobot.GetFurthestEnd()
     
     # if we have less than 10 cm left in our preferred direction see if another direction would be better
-    while currentDirection[1] < 10.0:
+    while currentDirection[1] < 15.0:
         autonomousRobot.RotateToBiggestSpace()
         currentDirection = autonomousRobot.GetFurthestEnd()
     autonomousRobot.SetSpeedBasedOnDistance(currentDirection[1])
     autonomousRobot.robot.Move(currentDirection[0])
-  
+    loop = 0
     while True:
         remainingDistance = autonomousRobot.GetDistanceToNextObstacle()
-        print(remainingDistance[0], remainingDistance[1])
+        if (loop == 0):
+            print(remainingDistance)
         # adjust speed as we get closer to a barrier
         autonomousRobot.SetSpeedBasedOnDistance(remainingDistance[1])
 
         # change direction if there is less than 10cm left in direction of travel  
-        if remainingDistance[1] < 10.0: 
+        if remainingDistance[1] < 15.0: 
             newDirection = autonomousRobot.RotateToBiggestSpace()
             autonomousRobot.robot.Move(newDirection[0])
+        loop += 1
+        if loop == 100:
+            loop = 0
 except KeyboardInterrupt:
     autonomousRobot.robot.Stop()
 finally:
