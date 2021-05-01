@@ -105,10 +105,12 @@ class AutoRobot:
         while True: # repeat until the front or back is pointing to the biggest space
             preferredDirection = self.GetMaxDistanceDirection()
             print("rotating, preferred direction is ", preferredDirection)
+
             # if the best direction is forward or reverse don't spin and return
             if preferredDirection[1] == ServoDirection.Ahead or \
                 preferredDirection[1] == ServoDirection.OffLeft or \
                 preferredDirection[1] == ServoDirection.OffRight:
+                print("direction chosen", preferredDirection[0], preferredDirection[1], preferredDirection[2])
                 if preferredDirection[0] == ServoEnd.Front:
                     return Direction.Forward, preferredDirection[2]
                 else:
@@ -122,8 +124,10 @@ class AutoRobot:
                 (preferredDirection[0] == ServoEnd.Back and 
                 (preferredDirection[1] == ServoDirection.OffLeft or preferredDirection[1] == ServoDirection.Left)):
                 self.robot.SpinRight()
+                print("spin right")
             else:
                 self.robot.SpinLeft()
+                print("spin left")
 
             if ServoDirection.OffLeft or ServoDirection.OffRight:
                 time.sleep(0.3) # rotate 45 degrees
@@ -136,7 +140,7 @@ class AutoRobot:
 
     def AreWeStuck(self, direction, distance):
         if abs(distance - self.previousDistance) < 1.0 and direction == self.previousDirection:
-            print("Stuck")
+            print("Stuck!")
             return True
         return False
 
@@ -174,7 +178,6 @@ try:
 
         # change direction if there is less than 10cm left in direction of travel  
         if currentDirection[1] < 25.0 or autonomousRobot.AreWeStuck(currentDirection[0], currentDirection[1]): 
-            print("spinning", currentDirection)
             currentDirection = autonomousRobot.RotateToBiggestSpace()
             autonomousRobot.SetSpeedBasedOnDistance(currentDirection[1])
             autonomousRobot.robot.Move(currentDirection[0])
