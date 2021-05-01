@@ -5,7 +5,7 @@ from ultrasonic import DistanceSensors
 
 GPIO.setmode(GPIO.BCM)
 sensors = DistanceSensors()
-sensors.StartScanner(0.5)
+sensors.StartScanner(0.2)
 
 robot = Wheels()
 x = 's'

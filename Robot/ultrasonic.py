@@ -134,7 +134,7 @@ class DistanceSensors:
 
 # try:
 #     sensors = DistanceSensors()
-#     sensors.StartScanner(0.2, True)
+#     sensors.StartScanner(0.1, True)
 #     while sensors.scannerActive:
 #         # if keyboard.read_key() == 'e':
 #         #     sensors.StopScanner()
