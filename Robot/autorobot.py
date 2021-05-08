@@ -12,10 +12,11 @@ class AutoRobot:
 
         self.previousDistance = -1.0
         self.previousDirection = Direction.Stop
-        
+        self.stuckCount = 0
+
         # start distance scanning
         if not(self.sensors.StartScanner(scanInterval, True)):
-            raise "Distance sensors not working"
+            raise SensorException("Distance sensors not working")
 
     def GetDistanceToNextObstacle(self):
         '''
@@ -68,6 +69,22 @@ class AutoRobot:
         else:
             res = [key for key in self.sensors.frontDistance if self.sensors.frontDistance[key] >= maxFrontDistance]
             return ServoEnd.Front, res[0], maxFrontDistance
+            return Direction.Forward, self.sensors.frontDistance[ServoDirection.Ahead]
+
+    def GetMinDistanceDirection(self):
+        '''
+            returns servo end, servo direction, distance
+            Returns the sensor direction with the most space and what that distance is
+        '''
+        minRearDistance = min(self.sensors.backDistance.values())
+        minFrontDistance = min(self.sensors.frontDistance.values())
+
+        if minRearDistance < minFrontDistance:
+            res = [key for key in self.sensors.backDistance if self.sensors.backDistance[key] <= minRearDistance]
+            return ServoEnd.Back, res[0], minRearDistance
+        else:
+            res = [key for key in self.sensors.frontDistance if self.sensors.frontDistance[key] <= minFrontDistance]
+            return ServoEnd.Front, res[0], minFrontDistance
 
     def SetSpeedBasedOnDistance(self, distance):
         '''
@@ -96,16 +113,6 @@ class AutoRobot:
             preferredDirection = self.GetMaxDistanceDirection()
             print("rotating, preferred direction is ", preferredDirection)
 
-            # if the best direction is forward or reverse don't spin and return
-            if preferredDirection[1] == ServoDirection.Ahead or \
-                preferredDirection[1] == ServoDirection.OffLeft or \
-                preferredDirection[1] == ServoDirection.OffRight:
-                print("direction chosen", preferredDirection[0], preferredDirection[1], preferredDirection[2])
-                if preferredDirection[0] == ServoEnd.Front:
-                    return Direction.Forward, preferredDirection[2]
-                else:
-                    return Direction.Reverse, preferredDirection[2]
-
             self.robot.Speed(70)
             
             # work out whether to spin right or left
@@ -120,23 +127,39 @@ class AutoRobot:
                 print("spin left")
 
             if ServoDirection.OffLeft or ServoDirection.OffRight:
-                time.sleep(0.3) # rotate 45 degrees
+                time.sleep(0.5) # rotate 45 degrees
             else: 
-                time.sleep(0.6) # rotate 90 degrees
+                time.sleep(1.0) # rotate 90 degrees
             self.robot.Stop()
+
+            preferredDirection = self.GetMaxDistanceDirection()
+            
+            # if the best direction is forward or reverse don't spin and return
+            if preferredDirection[1] == ServoDirection.Ahead or \
+                preferredDirection[1] == ServoDirection.OffLeft or \
+                preferredDirection[1] == ServoDirection.OffRight:
+                print("direction chosen", preferredDirection[0], preferredDirection[1], preferredDirection[2])
+                if preferredDirection[0] == ServoEnd.Front:
+                    return Direction.Forward, preferredDirection[2]
+                else:
+                    return Direction.Reverse, preferredDirection[2]
 
             # wait to get new set of distance readings
             time.sleep(1)
             attempts -= 1
-        raise("cannot rotate out of trouble giving up")
+        raise StuckExcepion("cannot rotate out of trouble giving up")
 
     def AreWeStuck(self, direction, distance):
         '''
         returns True if we haven't moved since the last scan
         '''
         if abs(distance - self.previousDistance) < 1.0 and direction == self.previousDirection and direction != Direction.Stop:
-            print("Stuck!")
-            return True
+            self.stuckCount += 1
+            if self.stuckCount == 4:
+                print("Stuck!")
+                return True
+        else:
+            self.stuckCount = 0
         return False
 
     def UpdatePosition(self, direction, distance):
@@ -146,17 +169,17 @@ class AutoRobot:
         self.previousDirection = direction
         self.previousDistance = distance
 
-    def GetNearestObstacleInDirectionOfTravel(self, currentDirection)
-    '''
-    Find out how far away we are from any obstacle directly infront of our direction of travel
-    '''
-        nearestObstacle = autonomousRobot.GetMinDistanceDirection(currentDirection)
+    def GetNearestObstacleInDirectionOfTravel(self, currentDirection):
+        '''
+        Find out how far away we are from any obstacle directly infront of our direction of travel
+        '''
+        nearestObstacle = autonomousRobot.GetMinDistanceDirection()
         if nearestObstacle[0] == ServoEnd.Front:
             obstacleGeneralDirection = Direction.Forward
         else:
             obstacleGeneralDirection = Direction.Reverse
         if obstacleGeneralDirection != currentDirection:
-            return 0
+            return 1000.0
         return nearestObstacle[2]
 
 GPIO.setmode(GPIO.BCM)
@@ -177,7 +200,7 @@ try:
 
     while True:
         currentDirection = autonomousRobot.GetDistanceToNextObstacle()
-        nearestObstacle = autonomousRobot.GetMinDistanceDirection(currentDirection[0])
+        nearestObstacle = autonomousRobot.GetNearestObstacleInDirectionOfTravel(currentDirection[0])
 
         # display current metrics every 4th loop
         loop -= 1
@@ -187,14 +210,14 @@ try:
 
         # adjust speed as we move relative to any obstacles in front of us, factor in any obstacles to the side
         # take the average distance between nearest front obstacle and side obstacle if the nearest obstacle isn't directly infront of us
-        speedDistance = min(currentDirection[1], (nearestObstacle[1] + currentDirection[1]) / 2)
+        speedDistance = min(currentDirection[1], (nearestObstacle + currentDirection[1]) / 2)
         autonomousRobot.SetSpeedBasedOnDistance(speedDistance)
 
         # change direction if:
         # there is less than 25cm left in direction of travel  
         # or there is an obstacle anywhere infront of us < 10cm
         # or we haven't made forward progress since the last scan
-        if currentDirection[1] < 25.0 or nearestObstacle[2] < 10.0 or autonomousRobot.AreWeStuck(currentDirection[0], currentDirection[1]): 
+        if currentDirection[1] < 25.0 or nearestObstacle < 10.0 or autonomousRobot.AreWeStuck(currentDirection[0], currentDirection[1]): 
             currentDirection = autonomousRobot.RotateToBiggestSpace()
             autonomousRobot.SetSpeedBasedOnDistance(currentDirection[1])
             autonomousRobot.robot.Move(currentDirection[0])
