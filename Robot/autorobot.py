@@ -20,8 +20,8 @@ class AutoRobot:
 
     def GetDistanceToNextObstacle(self):
         '''
-            Returns the remaining direction, distance in CMs in the current direction of travel
-            Returns space in forward direction if stopped or rotating 
+        Returns the remaining direction, distance in CMs in the current direction of travel
+        Returns space in forward direction if stopped or rotating 
         '''
         distance = -1.0
         if self.robot.direction == Direction.Forward or self.robot.direction == Direction.Stop or \
@@ -45,8 +45,8 @@ class AutoRobot:
 
     def GetFurthestEnd(self):
         '''
-            returns direction, distance
-            Work out if there is more space infront or behind and ignore sides
+        Returns direction, distance
+        Work out if there is more space infront or behind and ignore sides
         '''
         if self.sensors.backDistance[ServoDirection.Ahead] > self.sensors.frontDistance[ServoDirection.Ahead]:
             print("Furthest = Reverse", self.sensors.backDistance[ServoDirection.Ahead])
@@ -57,8 +57,8 @@ class AutoRobot:
 
     def GetMaxDistanceDirection(self):
         '''
-            returns servo end, servo direction, distance
-            Returns the sensor direction with the most space and what that distance is
+        Returns servo end, servo direction, distance
+        Returns the sensor direction with the most space and what that distance is
         '''
         maxRearDistance = max(self.sensors.backDistance.values())
         maxFrontDistance = max(self.sensors.frontDistance.values())
@@ -72,9 +72,9 @@ class AutoRobot:
             return Direction.Forward, self.sensors.frontDistance[ServoDirection.Ahead]
 
     def GetMinDistanceDirection(self):
-        '''
-            returns servo end, servo direction, distance
-            Returns the sensor direction with the most space and what that distance is
+        '''   
+        Returns servo end, servo direction, distance
+        Returns the sensor direction with the most space and what that distance is
         '''
         minRearDistance = min(self.sensors.backDistance.values())
         minFrontDistance = min(self.sensors.frontDistance.values())
@@ -88,8 +88,8 @@ class AutoRobot:
 
     def SetSpeedBasedOnDistance(self, distance):
         '''
-        set speed based on space infront of us
-        return the current speed
+        Set speed based on space infront of us
+        Return the current speed
         '''
         if distance < 20.0:
             self.robot.Stop()
@@ -105,13 +105,14 @@ class AutoRobot:
 
     def RotateToBiggestSpace(self):
         ''' 
-            returns direction, distance in new direction of travel
-            Rotates so either front or rear is pointing to biggests space.
+        Returns direction, distance in new direction of travel
+        Rotates so either front or rear is pointing to biggests space.
         '''
         attempts = 5
+        preferredDirection = self.GetMaxDistanceDirection()
+
         while attempts > 0: # repeat until the front or back is pointing to the biggest space
-            preferredDirection = self.GetMaxDistanceDirection()
-            print("rotating, preferred direction is ", preferredDirection)
+            print("rotating, biggest space is ", preferredDirection)
 
             self.robot.Speed(70)
             
@@ -120,25 +121,26 @@ class AutoRobot:
                 (preferredDirection[1] == ServoDirection.OffRight or preferredDirection[1] == ServoDirection.Right)) or \
                 (preferredDirection[0] == ServoEnd.Back and 
                 (preferredDirection[1] == ServoDirection.OffLeft or preferredDirection[1] == ServoDirection.Left)):
-                self.robot.SpinRight()
                 print("spin right")
+                self.robot.SpinRight()
             else:
-                self.robot.SpinLeft()
                 print("spin left")
+                self.robot.SpinLeft()
 
             if ServoDirection.OffLeft or ServoDirection.OffRight:
-                time.sleep(0.5) # rotate 45 degrees
+                time.sleep(0.5) # rotate a bit
             else: 
-                time.sleep(1.0) # rotate 90 degrees
+                time.sleep(1.0) # rotate a lot
             self.robot.Stop()
 
+            # reassess where the biggest space is
             preferredDirection = self.GetMaxDistanceDirection()
             
             # if the best direction is forward or reverse don't spin and return
             if preferredDirection[1] == ServoDirection.Ahead or \
                 preferredDirection[1] == ServoDirection.OffLeft or \
                 preferredDirection[1] == ServoDirection.OffRight:
-                print("direction chosen", preferredDirection[0], preferredDirection[1], preferredDirection[2])
+                print("direction chosen", preferredDirection)
                 if preferredDirection[0] == ServoEnd.Front:
                     return Direction.Forward, preferredDirection[2]
                 else:
@@ -151,7 +153,7 @@ class AutoRobot:
 
     def AreWeStuck(self, direction, distance):
         '''
-        returns True if we haven't moved since the last scan
+        Returns True if we haven't moved in the last four checks for being stuck
         '''
         if abs(distance - self.previousDistance) < 1.0 and direction == self.previousDirection and direction != Direction.Stop:
             self.stuckCount += 1
@@ -164,7 +166,7 @@ class AutoRobot:
 
     def UpdatePosition(self, direction, distance):
         '''
-            Record our current location we we can determine later if we are stuck
+        Record our current location we we can determine later if we are stuck
         '''
         self.previousDirection = direction
         self.previousDistance = distance
@@ -223,7 +225,7 @@ try:
             autonomousRobot.robot.Move(currentDirection[0])
 
         autonomousRobot.UpdatePosition(currentDirection[0], currentDirection[1])
-        time.sleep(0.6)
+        time.sleep(0.5)
 
 finally:
     autonomousRobot.robot.Stop()
