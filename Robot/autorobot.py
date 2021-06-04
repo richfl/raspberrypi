@@ -5,6 +5,12 @@ from wheels import Wheels, Direction
 from ultrasonic import DistanceSensors
 from servos import ServoDirection, ServoEnd
 
+class StuckException(Exception):
+    pass
+
+class SensorException(Exception):
+    pass
+
 class AutoRobot:
     def __init__(self, scanInterval = 0.1):
         self.sensors = DistanceSensors()
@@ -65,11 +71,16 @@ class AutoRobot:
 
         if maxRearDistance > maxFrontDistance:
             res = [key for key in self.sensors.backDistance if self.sensors.backDistance[key] >= maxRearDistance]
-            return ServoEnd.Back, res[0], maxRearDistance
+            if abs(self.sensors.backDistance[ServoDirection.Ahead] - maxRearDistance) < 10:
+                return ServoEnd.Back, ServoDirection.Ahead, self.sensors.backDistance[ServoDirection.Ahead]
+            else:
+                return ServoEnd.Back, res[0], maxRearDistance
         else:
             res = [key for key in self.sensors.frontDistance if self.sensors.frontDistance[key] >= maxFrontDistance]
-            return ServoEnd.Front, res[0], maxFrontDistance
-            return Direction.Forward, self.sensors.frontDistance[ServoDirection.Ahead]
+            if abs(self.sensors.frontDistance[ServoDirection.Ahead] - maxFrontDistance) < 10:
+                return ServoEnd.Front, ServoDirection.Ahead, self.sensors.frontDistance[ServoDirection.Ahead]
+            else:
+                return ServoEnd.Front, res[0], maxFrontDistance
 
     def GetMinDistanceDirection(self):
         '''   
@@ -175,7 +186,7 @@ class AutoRobot:
         '''
         Find out how far away we are from any obstacle directly infront of our direction of travel
         '''
-        nearestObstacle = GetMinDistanceDirection()
+        nearestObstacle = self.GetMinDistanceDirection()
         if nearestObstacle[0] == ServoEnd.Front:
             obstacleGeneralDirection = Direction.Forward
         else:
