@@ -32,6 +32,13 @@ class DistanceSensors:
         self.scannerActive = False
         self.endthread = False
 
+        self.HistoryFront = [[0.0, 0.0, 0.0, 0.0, 0.0]]
+        self.HistoryBack = [[0.0, 0.0, 0.0, 0.0, 0.0]]
+        self.FrontDeltas = [[0.0, 0.0, 0.0, 0.0, 0.0]]
+        self.BackDeltas = [[0.0, 0.0, 0.0, 0.0, 0.0]]
+        self.FrontDeltaDelta = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self.BackDeltaDelta = [0.0, 0.0, 0.0, 0.0, 0.0]
+
         # initialise current distance readings
         self.frontDistance = {
             ServoDirection.Left: -1.0,
@@ -49,6 +56,60 @@ class DistanceSensors:
             ServoDirection.Right: -1.0
         }
         time.sleep(1)
+
+    def UpdateStatistics(self):
+        if len(self.HistoryFront) == 1:
+            self.HistoryFront = [[self.frontDistance[ServoDirection.Left],
+                            self.frontDistance[ServoDirection.OffLeft],
+                            self.frontDistance[ServoDirection.Ahead],
+                            self.frontDistance[ServoDirection.OffRight],
+                            self.frontDistance[ServoDirection.Right]]]
+            self.HistoryBack = [[self.backDistance[ServoDirection.Left],
+                            self.backDistance[ServoDirection.OffLeft],
+                            self.backDistance[ServoDirection.Ahead],
+                            self.backDistance[ServoDirection.OffRight],
+                            self.backDistance[ServoDirection.Right]]]
+
+        self.HistoryFront += [[self.frontDistance[ServoDirection.Left],
+                            self.frontDistance[ServoDirection.OffLeft],
+                            self.frontDistance[ServoDirection.Ahead],
+                            self.frontDistance[ServoDirection.OffRight],
+                            self.frontDistance[ServoDirection.Right]]]
+        self.HistoryBack += [[self.backDistance[ServoDirection.Left],
+                            self.backDistance[ServoDirection.OffLeft],
+                            self.backDistance[ServoDirection.Ahead],
+                            self.backDistance[ServoDirection.OffRight],
+                            self.backDistance[ServoDirection.Right]]]
+
+        self.FrontDeltas += [[round(self.HistoryFront[-1][0] - self.HistoryFront[-2][0], 1),
+                            round(self.HistoryFront[-1][1] - self.HistoryFront[-2][1], 1),
+                            round(self.HistoryFront[-1][2] - self.HistoryFront[-2][2], 1),
+                            round(self.HistoryFront[-1][3] - self.HistoryFront[-2][3], 1),
+                            round(self.HistoryFront[-1][4] - self.HistoryFront[-2][4], 1)]]
+            
+        self.BackDeltas += [[round(self.HistoryBack[-1][0] - self.HistoryBack[-2][0], 1),
+                            round(self.HistoryBack[-1][1] - self.HistoryBack[-2][1], 1),
+                            round(self.HistoryBack[-1][2] - self.HistoryBack[-2][2], 1),
+                            round(self.HistoryBack[-1][3] - self.HistoryBack[-2][3], 1),
+                            round(self.HistoryBack[-1][4] - self.HistoryBack[-2][4], 1)]]
+        # only keep the most recent 10 entries
+        if (len(self.HistoryFront) > 10):
+            del self.HistoryFront[0]
+            del self.HistoryBack[0]
+            del self.FrontDeltas[0]
+            del self.BackDeltas[0]
+        
+        self.FrontDeltaDelta = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self.BackDeltaDelta = [0.0, 0.0, 0.0, 0.0, 0.0]
+
+        for j in range(0, min(5, len(self.FrontDeltas))):
+            for i in range(0, 4):
+                self.FrontDeltaDelta[i] += self.FrontDeltas[j][i]
+                self.BackDeltaDelta[i] += self.BackDeltas[j][i]
+                
+        for i in range(0, 4):
+            self.FrontDeltaDelta[i] = round(self.FrontDeltaDelta[i], 1)
+            self.BackDeltaDelta[i] = round(self.BackDeltaDelta[i], 1)
 
     # threaded function
     def GetDistance(self, delay):
@@ -99,6 +160,9 @@ class DistanceSensors:
             if backdistance> 0 and not(backError):
                 self.backDistance[self.backServoDirection] = backdistance
 
+            if (self.frontServoDirection == ServoDirection.Left):
+                self.UpdateStatistics()
+
             # move servos to next direction to scan
             servoDirections = self.servos.NextScanPosition()
             self.frontServoDirection = servoDirections[0]
@@ -132,20 +196,22 @@ class DistanceSensors:
         self.ultrathread.join()
         self.scannerActive = False
 
-# try:
-#     sensors = DistanceSensors()
-#     sensors.StartScanner(0.1, True)
-#     while sensors.scannerActive:
-#         # if keyboard.read_key() == 'e':
-#         #     sensors.StopScanner()
+try:
+    sensors = DistanceSensors()
+    sensors.StartScanner(0.1, True)
+    while sensors.scannerActive:
+        # if keyboard.read_key() == 'e':
+        #     sensors.StopScanner()
        
-#         print("Front")
-#         print(sensors.frontDistance)
-#         print("back")
-#         print(sensors.backDistance)
-#         time.sleep(1)
-#      # Reset by pressing CTRL + C
-# except KeyboardInterrupt:
-#     sensors.StopScanner()
-# finally:
-#     GPIO.cleanup()
+        # print("Front")
+        # print(sensors.frontDistance)
+        # print("back")
+        # print(sensors.backDistance)
+        time.sleep(1)
+        print("Back", sensors.BackDeltaDelta, sensors.BackDeltas[-1])
+        print("Front", sensors.FrontDeltaDelta, sensors.FrontDeltas[-1])
+     # Reset by pressing CTRL + C
+except KeyboardInterrupt:
+    sensors.StopScanner()
+finally:
+    GPIO.cleanup()
